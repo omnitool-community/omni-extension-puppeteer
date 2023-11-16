@@ -1,6 +1,6 @@
-title: Puppeteer
+title: Puppeteer Web Tool
 version: 0.0.1
-description: Puppeteer Extension
+description: Omnitool extensions wrapping the puppeteer library for capturing web screenshots and scrapping web content.
 author: Nick Yang
 origin: https://github.com/omnitool-community/omni-extension-puppeteer.git
 client:
