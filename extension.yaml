@@ -4,6 +4,6 @@ description: Omnitool extensions wrapping the puppeteer library for capturing we
 author: Nick Yang
 origin: https://github.com/omnitool-community/omni-extension-puppeteer.git
 client:
-  addToWorkbench: true
+  addToWorkbench: false
 supports:
   - "blocks:v2"

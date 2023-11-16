@@ -81,6 +81,27 @@ component
       .toOmniIO()
   )
   .setMacro(OmniComponentMacroTypes.EXEC, async (payload: any, ctx: WorkerContext) => {
+    
+    // Auto-scroll function
+    async function autoScroll(page: puppeteer.Page): Promise<void> {
+      await page.evaluate(async () => {
+        await new Promise<void>((resolve, reject) => {
+          var totalHeight = 0;
+          var distance = 100;
+          var timer = setInterval(() => {
+            var scrollHeight = document.body.scrollHeight;
+            window.scrollBy(0, distance);
+            totalHeight += distance;
+    
+            if (totalHeight >= scrollHeight) {
+              clearInterval(timer);
+              resolve();
+            }
+          }, 200);
+        });
+      });
+    }
+    
     // Validate the URL
     if (!payload.url || typeof payload.url !== 'string') {
       throw new Error('Invalid or missing URL');
@@ -106,6 +127,8 @@ component
       } else {
         await page.goto(payload.url, { waitUntil: 'load' });
       }
+
+      await autoScroll(page);
 
       const screenshotBuffer = await page.screenshot({ fullPage: !!payload.fullPage });
       const screenshotBase64 = screenshotBuffer.toString('base64');
