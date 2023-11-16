@@ -1,7 +1,9 @@
-title: Template extension
+title: Puppeteer
 version: 0.0.1
-description: This is a template extension
-author: Anonymous
-origin: <Your git repository here, ex) git@github.com:your-github-id/your-github-repo.git>
+description: Puppeteer Extension
+author: Nick Yang
+origin: https://github.com/omnitool-community/omni-extension-puppeteer.git
 client:
   addToWorkbench: true
+supports:
+  - "blocks:v2"
