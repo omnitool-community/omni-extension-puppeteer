@@ -1,0 +1,16 @@
+{
+  "name": "omni-extension-puppeteer",
+  "packageManager": "yarn@3.3.1",
+  "scripts": {
+    "build": "node ./build.mjs"
+  },
+  "externals": [],
+  "devDependencies": {
+    "esbuild": "^0.18.4",
+    "esbuild-sass-plugin": "^2.10.0",
+    "typescript": "^5.1.3"
+  },
+  "dependencies": {
+    "puppeteer": "^21.5.2"
+  }
+}
