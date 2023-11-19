@@ -62,15 +62,30 @@ component
   .addInput(
     component.createInput('fullPage', 'boolean')
       .set('title', 'Full Page')
+      .set('description', 'Automatically scrolls the webpage to capture all dynamically loaded and lazy-loaded content in screenshots, ideal for pages that reveal additional content on scroll.')
+      .setDefault(true)
+      .toOmniIO()
+  )
+  .addInput(
+    component.createInput('autoscroll', 'boolean')
+      .set('title', 'Auto Scroll')
       .set('description', 'Capture the entire scrollable page as a screenshot.')
       .setDefault(true)
       .toOmniIO()
   )
   .addInput(
-    component.createInput('waitingTime', 'number')
-      .set('title', 'Wait')
-      .set('description', 'Time to wait after page load before taking the screenshot, in milliseconds.')
-      .setDefault(3000)
+    component.createInput('delay', 'number')
+      .set('title', 'Scroll Delay')
+      .set('description', 'The delay in milliseconds between each scroll step. A higher value results in slower scrolling, allowing more time for page content to load and animations to complete.')
+      .setDefault(100)
+      .toOmniIO()
+  )
+  .addInput(
+    component.createInput('distance', 'number')
+      .set('title', 'Scroll Distance')
+      .set('description', 'The distance in pixels the page will scroll on each step. Smaller values create smoother, more gradual scrolling.')
+      .setDefault(100)
+      .setConstraints(10, 500, 10)
       .toOmniIO()
   )
   
@@ -83,23 +98,27 @@ component
   .setMacro(OmniComponentMacroTypes.EXEC, async (payload: any, ctx: WorkerContext) => {
     
     // Auto-scroll function
-    async function autoScroll(page: puppeteer.Page): Promise<void> {
-      await page.evaluate(async () => {
-        await new Promise<void>((resolve, reject) => {
-          var totalHeight = 0;
-          var distance = 100;
-          var timer = setInterval(() => {
-            var scrollHeight = document.body.scrollHeight;
-            window.scrollBy(0, distance);
-            totalHeight += distance;
-    
-            if (totalHeight >= scrollHeight) {
-              clearInterval(timer);
-              resolve();
-            }
-          }, 200);
-        });
-      });
+    async function autoScroll(page: puppeteer.Page, distance: number, delay: number): Promise<void> {
+      await page.evaluate(async (distance: number, delay: number) => {
+          await new Promise<void>((resolve, reject) => {
+              var totalHeight = 0;
+  
+              function step() {
+                  window.scrollBy(0, distance);
+                  totalHeight += distance;
+  
+                  if (totalHeight < document.body.scrollHeight) {
+                      setTimeout(() => {
+                          window.requestAnimationFrame(step);
+                      }, delay);
+                  } else {
+                      resolve();
+                  }
+              }
+  
+              window.requestAnimationFrame(step);
+          });
+      }, distance, delay); // Pass distance and delay as arguments
     }
     
     // Validate the URL
@@ -119,17 +138,12 @@ component
 
     try {
       await page.setViewport(viewportOptions);
+      await page.goto(payload.url, { waitUntil: 'networkidle2' });
 
-      // Wait for additional time if 'waitingTime' is specified and valid
-      if (payload.waitingTime && !isNaN(payload.waitingTime)) {
-        await page.goto(payload.url);
-        await page.waitForTimeout(payload.waitingTime);
-      } else {
-        await page.goto(payload.url, { waitUntil: 'load' });
-      }
-
-      await autoScroll(page);
-
+      if (payload.autoscroll){
+        await autoScroll(page, payload.distance, payload.delay);
+      }        
+      await page.waitForTimeout(200);
       const screenshotBuffer = await page.screenshot({ fullPage: !!payload.fullPage });
       const screenshotBase64 = screenshotBuffer.toString('base64');
 
